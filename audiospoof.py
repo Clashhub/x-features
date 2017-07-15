@@ -10,8 +10,11 @@ import os
 import numpy as np
 from sklearn import mixture
 import librosa
-import matplotlib.pyplot as plt
-import functions as fn
+#import matplotlib.pyplot as plt
+#import functions as fn
+
+#import joblib to save model
+from sklearn.externals import joblib
 
 # The paths where the full training files are stored
 path1 = r"C:\train_dev_test\training\genuine"
@@ -96,5 +99,9 @@ gmm1.fit(genuine)
 #
 gmm2 = mixture.GaussianMixture(n_components = 20)
 gmm2.fit(spoofed)  
+
+#persist model for future use
+joblib.dump(gmm1, 'gmm1_g')
+joblib.dump(gmm2, 'gmm2_s')
 
  

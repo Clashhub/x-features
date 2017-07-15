@@ -8,7 +8,7 @@ Created on Fri Jun 23 12:44:19 2017
 import numpy as np
 import librosa
 from tkinter import filedialog
-
+import os
 #class DataHolder(object):
 #    def __init__(self, mfcc, delta, deldel, previous = None):        
 #        self.data = np.vstack([mfcc, delta, deldel])
@@ -53,7 +53,7 @@ from tkinter import filedialog
 #    
 #    return a
     
-def getFeatures():
+def getFeatures(c,path):
     
   # no. of frames for the features
   frames = 100
@@ -78,5 +78,50 @@ def getFeatures():
        c = np.pad(c, [(0,0),(0, frames-len(c[0]))], 'constant')
   elif len(c[0]) > frames:
        c = c[0:60, :frames]
-        
-  return np.transpose(c)
+  
+  c = np.transpose(c)     
+#  return np.transpose(c)
+
+def getDir(p):
+    p = filedialog.askdirectory()
+    
+def modelAccuracy():
+  path_g = r"C:\train_dev_test\devolpment\genuine"
+  path_s = r"C:\train_dev_test\devolpment\spoofed"
+  
+  list_g = os.listdir(path_g)
+  list_s = os.listdir(path_s)
+  
+  result = []
+  for file in list_g:
+      
+      test_file = os.path.join(path_g, file)
+      
+      y, sr = librosa.load(test_file) # y = audio time series, sr = sampling rate
+   
+    # Extract MFCC features and append
+      mfcc = librosa.feature.mfcc(y=y, sr=sr)
+   
+    # Extract MFCC Delta and append
+      mfcc_delta = librosa.feature.delta(mfcc)
+  
+    # Extract MFCC Delta-Delta and append
+      mfcc_delta_delta = librosa.feature.delta(mfcc_delta)
+     
+      b = np.vstack([mfcc, mfcc_delta, mfcc_delta_delta])
+      
+      if len(b[0]) < 100:
+       b = np.pad(b, [(0,0),(0, 100-len(b[0]))], 'constant')
+      elif len(b[0]) > 100:
+       b = b[0:60, :100]
+       
+      to_predict = np.transpose(b)
+      
+      sco_g = gmm1.predict(to_predict)
+      sco_s = gmm2.predict(to_predict)
+      
+      final_score = sco_g - sco_s
+      
+      result.append(final_score)
+      
+  return final_score   
