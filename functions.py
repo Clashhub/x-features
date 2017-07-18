@@ -9,6 +9,7 @@ import numpy as np
 import librosa
 from tkinter import filedialog
 import os
+from sklearn.externals import joblib
 #class DataHolder(object):
 #    def __init__(self, mfcc, delta, deldel, previous = None):        
 #        self.data = np.vstack([mfcc, delta, deldel])
@@ -85,17 +86,26 @@ def getFeatures(c,path):
 def getDir(p):
     p = filedialog.askdirectory()
     
-def modelAccuracy():
-  path_g = r"C:\train_dev_test\devolpment\genuine"
-  path_s = r"C:\train_dev_test\devolpment\spoofed"
-  
-  list_g = os.listdir(path_g)
-  list_s = os.listdir(path_s)
-  
+def modelAccuracy(sel):
+     
   result = []
-  for file in list_g:
+  correct=0  
+  
+  if sel == 1:
+      path = r"C:\train_dev_test\devolpment\genuine"
+  if sel == 2: 
+      path = r"C:\train_dev_test\devolpment\spoofed"
+  
+  list= os.listdir(path)
+  
+
+  
+  gmm1 = joblib.load('gmm1_g')
+  gmm2 = joblib.load('gmm2_s')
+
+  for file in list:
       
-      test_file = os.path.join(path_g, file)
+      test_file = os.path.join(path, file)
       
       y, sr = librosa.load(test_file) # y = audio time series, sr = sampling rate
    
@@ -117,11 +127,24 @@ def modelAccuracy():
        
       to_predict = np.transpose(b)
       
-      sco_g = gmm1.predict(to_predict)
-      sco_s = gmm2.predict(to_predict)
+      sco_g = gmm1.score(to_predict)
+      sco_s = gmm2.score(to_predict)
       
-      final_score = sco_g - sco_s
+      if sel == 1:
+        final_score = sco_g - sco_s
       
-      result.append(final_score)
+        result.append(final_score)
+        
+        if final_score > 0:
+          correct += 1
+          
+      if sel == 2:
+        
+        final_score = sco_s - sco_g
+        
+        result.append(final_score)
+        
+        if final_score > 0:
+          correct += 1
       
-  return final_score   
+  return result,correct
