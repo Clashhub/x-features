@@ -1,0 +1,37 @@
+Changelog
+
+logs:
+
+1. 14-07-2017
+2. 
+
+14-07-2017
+ 
+Commented functions:
+  
+  * Dataholder class commented out:
+
+     A way to simply access the data in the lists without trouble 
+     was figured out.
+ 
+  * calMeanOfFrames function commented out:
+
+     Number of frames used will now be fixed to 100 frames for consistency
+     instead of using the mean of the frames.
+  
+  * vStackFeatures function commented out:
+
+     Since Dataholder is no longer used, this function will no longer be needed.
+     Stacking the features will now be done in audiospoof.py as the code is very
+     short.
+
+Changes:
+  
+  * getFeatures function:
+
+     - frames now fixed to 100
+     - It wil no longer extract features only from file D_100001.wav. 
+       Instead, the file can now be manually selected.
+
+Additions:
+  * Added a main.py file. It will run everything and contains the GUI as well.
