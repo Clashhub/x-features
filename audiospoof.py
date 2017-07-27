@@ -8,10 +8,13 @@ This whole thing takes about 10mins to compile
 """
 import os
 import numpy as np
-from sklearn import mixture
+#from sklearn import mixture
 import librosa
-import matplotlib.pyplot as plt
-import functions as fn
+#import matplotlib.pyplot as plt
+#import functions as fn
+
+#import joblib to save model
+#from sklearn.externals import joblib
 
 # The paths where the full training files are stored
 path1 = r"C:\train_dev_test\training\genuine"
@@ -25,97 +28,81 @@ path2 = r"C:\train_dev_test\training\spoofed"
 audiofile1 = os.listdir(path1)  # genuine
 audiofile2 = os.listdir(path2)  # spoofed
 
-
-# For the first file only   
-# Load the audiofile
-y, sr = librosa.load(os.path.join(path1, audiofile1[0])) # y = audio time series, sr = sampling rate
-   
-# Extract MFCC features and append
-mfcc = librosa.feature.mfcc(y=y, sr=sr)
-#g_mfccObj = fn.DataHolder(mfcc)
-   
-# Extract MFCC Delta and append
-mfcc_delta = librosa.feature.delta(mfcc)
-#g_deltaObj = fn.DataHolder(mfcc_delta)
-   
-# Extract MFCC Delta-Delta and append
-mfcc_delta_delta = librosa.feature.delta(mfcc_delta)
-#g_delDelObj = fn.DataHolder(mfcc_delta_delta)  
-
-g_feature_obj = fn.DataHolder(mfcc, mfcc_delta, mfcc_delta_delta)
+#sum = 0
+gen_list = []
+spo_list = []
+frames = 100
 
 # Extract Mfcc features from all audio files
-for filename in audiofile1[1:]:
+for filename in audiofile1:
     
    # Concatenate path with filename 
    filename = os.path.join(path1, filename)
    
    # Load the audiofile
-   y, sr = librosa.load(filename) # y = audio time series, sr = sampling rate
+   y, sr = librosa.load(filename, sr = 16000) # y = audio time series, sr = sampling rate
+                                            # Doubled default sr.
    
    # Extract MFCC features and append
    mfcc = librosa.feature.mfcc(y=y, sr=sr)
-   #g_mfccObj = fn.DataHolder(mfcc, g_mfccObj)
+   #sum += len(mfcc[0])
    
    # Extract MFCC Delta and append
    mfcc_delta = librosa.feature.delta(mfcc)
-   #g_deltaObj = fn.DataHolder(mfcc_delta, g_deltaObj)
-   
+  
    # Extract MFCC Delta-Delta and append
-   mfcc_delta_delta = librosa.feature.delta(mfcc_delta)
-   #g_delDelObj = fn.DataHolder(mfcc_delta_delta, g_delDelObj)   
+   mfcc_delta_delta = librosa.feature.delta(mfcc_delta, order=2)
+     
+   a = np.vstack([mfcc, mfcc_delta, mfcc_delta_delta])
    
-   g_feature_obj = fn.DataHolder(mfcc, mfcc_delta, mfcc_delta_delta, g_feature_obj)   
+   if len(a[0]) < frames:
+       a = np.pad(a, [(0,0),(0, frames-len(a[0]))], 'constant')
+   elif len(a[0]) > frames:
+       a = a[0:60, :frames]
+       
+   gen_list.append(np.transpose(a))
+        
+genuine = np.vstack(gen_list)      
 
-# For the first file only   
-# Load the audiofile
-y, sr = librosa.load(os.path.join(path2, audiofile2[0])) # y = audio time series, sr = sampling rate
-   
-# Extract MFCC features and append
-mfcc = librosa.feature.mfcc(y=y, sr=sr)
-#s_mfccObj = fn.DataHolder(mfcc)
-   
-# Extract MFCC Delta and append
-mfcc_delta = librosa.feature.delta(mfcc)
-#s_deltaObj = fn.DataHolder(mfcc_delta)
-   
-# Extract MFCC Delta-Delta and append
-mfcc_delta_delta = librosa.feature.delta(mfcc_delta)
-#s_delDelObj = fn.DataHolder(mfcc_delta_delta)  
-   
-s_feature_obj = fn.DataHolder(mfcc, mfcc_delta, mfcc_delta_delta)
+#sum = 0
 
-for filename in audiofile2[1:]:
+for filename in audiofile2:
    
    # Concatenate path with filename 
    filename = os.path.join(path2, filename)
    
    # Load the audio file
-   y, sr = librosa.load(filename) # y = audio time series, sr = sampling rate
+   y, sr = librosa.load(filename, sr = 16000) # y = audio time series, sr = sampling rate
    
    # Extract MFCC features
    mfcc = librosa.feature.mfcc(y=y, sr=sr)
-   #s_mfccObj = fn.DataHolder(mfcc, s_mfccObj)
+   #sum += len(mfcc[0])
    
    # Extract MFCC Delta
    mfcc_delta = librosa.feature.delta(mfcc)
-   #s_deltaObj = fn.DataHolder(mfcc_delta, s_deltaObj)
-   
+
    # Extract MFCC Delta-Delta
-   mfcc_delta_delta = librosa.feature.delta(mfcc_delta)
-   #s_delDelObj = fn.DataHolder(mfcc_delta_delta, s_delDelObj)  
-   s_feature_obj = fn.DataHolder(mfcc, mfcc_delta, mfcc_delta_delta, s_feature_obj)   
+   mfcc_delta_delta = librosa.feature.delta(mfcc_delta, order=2)
    
-mean_g = fn.calMeanOfFrames(g_feature_obj) 
-mean_s = fn.calMeanOfFrames(s_feature_obj)  
+   b = np.vstack([mfcc, mfcc_delta, mfcc_delta_delta])
+   
+   if len(b[0]) < frames:
+       b = np.pad(b, [(0,0),(0, frames-len(b[0]))], 'constant')
+   elif len(b[0]) > frames:
+       b = b[0:60, :frames]
+       
+   spo_list.append(np.transpose(b))
+   
+spoofed = np.vstack(spo_list) 
 
-genuine = np.array(fn.vStackFeatures(mean_g, g_feature_obj))
-spoofed= np.array(fn.vStackFeatures(mean_s, s_feature_obj))
-
-gmm1 = mixture.GaussianMixture(n_components = 20)
-gmm1.fit(genuine)
-
-gmm2 = mixture.GaussianMixture(n_components = 20)
-gmm2.fit(spoofed)  
+#gmm1 = mixture.GaussianMixture(n_components = 20)
+#gmm1.fit(genuine)
+##
+#gmm2 = mixture.GaussianMixture(n_components = 20)
+#gmm2.fit(spoofed)  
+#
+##persist model for future use
+#joblib.dump(gmm1, 'gmm1_g')
+#joblib.dump(gmm2, 'gmm2_s')
 
  
