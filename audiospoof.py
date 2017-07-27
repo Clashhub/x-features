@@ -11,7 +11,7 @@ import numpy as np
 #from sklearn import mixture
 import librosa
 #import matplotlib.pyplot as plt
-#import functions as fn
+
 
 #import joblib to save model
 #from sklearn.externals import joblib

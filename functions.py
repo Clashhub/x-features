@@ -88,8 +88,8 @@ def getFeatures(c,path):
   c = np.transpose(c)     
 #  return np.transpose(c)
 
-def getDir(p):
-    p = filedialog.askdirectory()
+#def getDir(p):
+#    p = filedialog.askdirectory()
     
 def modelAccuracy(sel):
      

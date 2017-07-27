@@ -46,7 +46,7 @@ feature_list = 0
 
 
 ttk.Button(mainframe, text="Select directory", command =getDir(dirname).grid(column=3, row=1, sticky=W)
-ttk.Button(mainframe, text="Extract features", command=getFeatures(feature_list,path)).grid(column=3, row=2, sticky=(W,N))
+#ttk.Button(mainframe, text="Extract features", command=getFeatures(feature_list,path)).grid(column=3, row=2, sticky=(W,N))
 ttk.Button(mainframe, text="Predict", command=predictFile).grid(column=3, row=3, sticky=W)
 
 

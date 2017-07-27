@@ -8,6 +8,7 @@ from sklearn import mixture
 from sklearn import preprocessing
 
 import numpy as np
+
 #import joblib to save model
 from sklearn.externals import joblib
 
