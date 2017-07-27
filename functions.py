@@ -10,6 +10,7 @@ import librosa
 from tkinter import filedialog
 import os
 from sklearn.externals import joblib
+from sklearn import preprocessing
 #class DataHolder(object):
 #    def __init__(self, mfcc, delta, deldel, previous = None):        
 #        self.data = np.vstack([mfcc, delta, deldel])
@@ -89,7 +90,7 @@ def getDir(p):
 def modelAccuracy(sel):
      
   result = []
-  correct=0  
+  gNum=0  
   
   if sel == 1:
       path = r"C:\train_dev_test\devolpment\genuine"
@@ -107,7 +108,7 @@ def modelAccuracy(sel):
       
       test_file = os.path.join(path, file)
       
-      y, sr = librosa.load(test_file) # y = audio time series, sr = sampling rate
+      y, sr = librosa.load(test_file, sr=16000) # y = audio time series, sr = sampling rate
    
     # Extract MFCC features and append
       mfcc = librosa.feature.mfcc(y=y, sr=sr)
@@ -127,24 +128,14 @@ def modelAccuracy(sel):
        
       to_predict = np.transpose(b)
       
+      to_predict = preprocessing.scale(to_predict)
+      
       sco_g = gmm1.score(to_predict)
       sco_s = gmm2.score(to_predict)
       
-      if sel == 1:
-        final_score = sco_g - sco_s
       
-        result.append(final_score)
-        
-        if final_score > 0:
-          correct += 1
-          
-      if sel == 2:
-        
-        final_score = sco_s - sco_g
-        
-        result.append(final_score)
-        
-        if final_score > 0:
-          correct += 1
+      if sco_g > sco_s:
+          gNum += 1
+                  
       
-  return result,correct
+  return gNum,to_predict
